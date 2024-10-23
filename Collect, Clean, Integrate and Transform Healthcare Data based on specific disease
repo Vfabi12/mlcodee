@@ -1,1 +1,69 @@
 
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+
+# Step 1: Data Collection
+# Load the diabetes dataset
+data = pd.read_csv('/content/diabetes.csv')
+
+# Step 2: Data Cleaning
+# Check for missing values
+print("Missing values in the dataset:")
+print(data.isnull().sum())
+
+# Handling missing values
+# If there are missing values in any column, you can handle them (e.g., fill with median)
+data.fillna(data.median(), inplace=True)
+
+# Check for duplicates
+print("\nChecking for duplicates:")
+print(data.duplicated().sum())
+
+# Remove duplicates
+data = data.drop_duplicates()
+
+# Step 3: Data Integration
+# Assuming we have another dataset to merge, say patient demographics:
+# Here, we create a mock second dataset (for demonstration)
+demographics_data = pd.DataFrame({
+    'PatientID': np.arange(1, len(data)+1),
+    'Gender': np.random.choice(['Male', 'Female'], len(data)),
+    'Ethnicity': np.random.choice(['White', 'Black', 'Hispanic', 'Other'], len(data))
+})
+
+# Add a PatientID to the original data for joining
+data['PatientID'] = np.arange(1, len(data)+1)
+
+# Merge the diabetes data with the demographics data
+integrated_data = pd.merge(data, demographics_data, on='PatientID')
+
+# Step 4: Data Transformation
+# Feature Engineering (create a new feature, e.g., Age Group)
+integrated_data['AgeGroup'] = pd.cut(integrated_data['Age'],
+                                     bins=[0, 18, 35, 50, 65, 100],
+                                     labels=['Child', 'Young Adult', 'Adult', 'Senior', 'Elderly'])
+
+# Encoding categorical variables
+# Encoding 'Gender' and 'Ethnicity' using LabelEncoder
+le = LabelEncoder()
+integrated_data['Gender'] = le.fit_transform(integrated_data['Gender'])
+integrated_data['Ethnicity'] = le.fit_transform(integrated_data['Ethnicity'])
+
+# Standardizing the numerical features (like Glucose, BloodPressure, etc.)
+scaler = StandardScaler()
+scaled_columns = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'Age']
+
+integrated_data[scaled_columns] = scaler.fit_transform(integrated_data[scaled_columns])
+
+# Splitting the data into training and test sets for future modeling
+X = integrated_data.drop(['Outcome', 'PatientID'], axis=1)  # Features
+y = integrated_data['Outcome']  # Target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Display the transformed data
+print("Transformed Data Sample:")
+print(integrated_data.head())
