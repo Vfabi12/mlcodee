@@ -1,0 +1,79 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+data = pd.read_csv('/content/EDA-HEALTHCARE - EDA-HEALTHCARE.csv')
+print("Univariate Non-Graphical EDA")
+print("Numerical Columns Summary:")
+print(data.describe())
+print("\nCategorical Columns Summary:")
+print(data.describe(include=['O']))
+print("\nMissing Values:")
+print(data.isnull().sum())
+print("\nUnique values in categorical columns:")
+for column in data.select_dtypes(include=['object']).columns:
+    print(f"{column}: {data[column].nunique()} unique values")
+print("\nMultivariate Non-Graphical EDA")
+# Filter only numerical columns for correlation matrix
+numerical_data = data.select_dtypes(include=['float64', 'int64'])
+
+# Calculate and print the correlation matrix for numerical columns
+print("Correlation Matrix:")
+correlation_matrix = numerical_data.corr()
+print(correlation_matrix)
+print("\nCrosstab of No-show vs Gender:")
+print(pd.crosstab(data['No-show'], data['Gender'], normalize='index'))
+print("\nCrosstab of No-show vs Age Groups:")
+age_groups = pd.cut(data['Age'], bins=[0, 18, 35, 50, 65, 100], labels=['0-18', '19-35', '36-50', '51-65', '65+'])
+print(pd.crosstab(data['No-show'], age_groups, normalize='index'))
+print("\nUnivariate Graphical EDA")
+plt.figure(figsize=(10,6))
+sns.histplot(data['Age'], kde=True, bins=30)
+plt.title('Age Distribution')
+plt.xlabel('Age')
+plt.ylabel('Frequency')
+plt.show()
+
+plt.figure(figsize=(6,4))
+sns.countplot(x='Gender', data=data)
+plt.title('Gender Distribution')
+plt.xlabel('Gender')
+plt.ylabel('Count')
+plt.show()
+
+# No-show distribution
+plt.figure(figsize=(6,4))
+sns.countplot(x='No-show', data=data)
+plt.title('No-show Distribution')
+plt.xlabel('No-show')
+plt.ylabel('Count')
+plt.show()
+
+print("\nMultivariate Graphical EDA")
+plt.figure(figsize=(10,6))
+sns.boxplot(x='No-show', y='Age', data=data)
+plt.title('Boxplot of Age vs No-show')
+plt.show()
+
+# Heatmap of the correlation matrix
+plt.figure(figsize=(12,8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Correlation Matrix Heatmap')
+plt.show()
+
+# Age vs SMS_received and No-show
+plt.figure(figsize=(10,6))
+sns.violinplot(x='No-show', y='Age', hue='SMS_received', data=data, split=True)
+plt.title('Age vs SMS_received and No-show')
+plt.show()
+plt.savefig('eda_healthcare_visualizations.png')
+
+
+
+
+
+
+
+
+
+
